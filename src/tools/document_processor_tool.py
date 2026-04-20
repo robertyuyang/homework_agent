@@ -55,15 +55,7 @@ def _process_word_document(file_path_or_url):
                 except Exception as e:
                     pass
                 
-                # 如果docx2python失败，尝试用textract（支持更多格式）
-                try:
-                    import textract
-                    text = textract.process(full_path).decode('utf-8')
-                    code = _extract_code_from_text(text)
-                    if code and len(code.strip()) > 0:
-                        return {"success": True, "code": code, "filename": os.path.basename(file_path_or_url)}
-                except Exception as e:
-                    pass
+                # 如果docx2python失败，跳过textract（没有安装）
                 
                 # 如果都失败，尝试直接读取文件内容
                 try:
