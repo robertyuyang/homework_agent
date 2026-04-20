@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Coze Agent 智能对话</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            height: 90vh;
+            max-height: 800px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 顶部配置栏 */
+        .config-panel {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .config-section {
+            margin-bottom: 10px;
+        }
+
+        .config-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .config-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .config-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .config-label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.85em;
+            white-space: nowrap;
+        }
+
+        .config-input {
+            padding: 8px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 0.85em;
+            flex: 1;
+            transition: border-color 0.3s;
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .config-input.token {
+            font-family: 'Courier New', monospace;
+        }
+
+        .btn-config {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85em;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .btn-config:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+
+        .btn-config.secondary {
+            background: #6c757d;
+        }
+
+        .btn-config.secondary:hover {
+            background: #5a6268;
+        }
+
+        .toggle-config {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            padding: 5px 0;
+        }
+
+        .toggle-config:hover {
+            text-decoration: underline;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status-disconnected {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status-connected {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* 头部 */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.85em;
+        }
+
+        /* 聊天区域 */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            flex-shrink: 0;
+        }
+
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 18px;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        .message.assistant .message-content {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        /* 输入区域 */
+        .input-container {
+            padding: 20px;
+            background: white;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 15px;
+            font-size: 1em;
+            resize: none;
+            min-height: 50px;
+            max-height: 150px;
+            transition: border-color 0.3s;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-send {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-send:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-send:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* 加载动画 */
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 15px 20px;
+        }
+
+        .typing-dot {
+            width: 10px;
+            height: 10px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* 欢迎消息 */
+        .welcome-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        .welcome-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .welcome-message h2 {
+            color: #495057;
+            margin-bottom: 10px;
+        }
+
+        .welcome-message .info-box {
+            background: #e7f3ff;
+            border-left: 5px solid #0d6efd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: left;
+            color: #084298;
+        }
+
+        /* 错误提示 */
+        .error-message {
+            background: #ffebee;
+            border-left: 5px solid #c62828;
+            padding: 15px;
+            margin: 10px 20px;
+            border-radius: 8px;
+            color: #c62828;
+        }
+
+        /* 滚动条样式 */
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                height: 100vh;
+                max-height: none;
+                border-radius: 0;
+            }
+
+            .config-group {
+                min-width: 100%;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 配置面板 -->
+        <div class="config-panel">
+            <div class="config-section" id="toggleSection">
+                <button class="toggle-config" onclick="toggleConfig()">
+                    ⚙️ 显示/隐藏配置
+                </button>
+            </div>
+            <div id="configContent" style="display: none;">
+                <div class="config-section">
+                    <div class="config-row">
+                        <div class="config-group">
+                            <span class="config-label">API地址:</span>
+                            <input type="text" id="apiUrl" class="config-input" 
+                                   placeholder="https://example.com/stream_run"
+                                   value="https://qz23wrnyv4.coze.site/stream_run">
+                        </div>
+                        <div class="config-group">
+                            <span class="config-label">Project ID:</span>
+                            <input type="text" id="projectId" class="config-input" 
+                                   placeholder="Project ID"
+                                   value="7630729322323787795">
+                        </div>
+                    </div>
+                </div>
+                <div class="config-section">
+                    <div class="config-row">
+                        <div class="config-group" style="flex: 2;">
+                            <span class="config-label">Authorization Token:</span>
+                            <input type="password" id="authToken" class="config-input token" 
+                                   placeholder="Bearer eyJhbGciOiJSUzI1NiIs...">
+                        </div>
+                        <div class="config-group">
+                            <span class="config-label">Session ID:</span>
+                            <input type="text" id="sessionId" class="config-input" 
+                                   placeholder="会话ID（自动生成）">
+                        </div>
+                    </div>
+                </div>
+                <div class="config-section">
+                    <div class="config-row">
+                        <button class="btn-config" onclick="generateSessionId()">🔄 生成Session ID</button>
+                        <button class="btn-config" onclick="saveConfig()">💾 保存配置</button>
+                        <button class="btn-config secondary" onclick="loadConfig()">📂 加载配置</button>
+                        <button class="btn-config" onclick="testConnection()">🔗 测试连接</button>
+                        <div id="connectionStatus" class="connection-status status-disconnected" style="margin-left: auto;">
+                            <div class="status-dot"></div>
+                            <span>未连接</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 头部 -->
+        <div class="header">
+            <h1>🤖 Coze Agent 智能对话</h1>
+            <p>配置好 API 和 Token 后开始对话</p>
+        </div>
+
+        <!-- 聊天区域 -->
+        <div class="chat-container" id="chatContainer">
+            <div class="welcome-message" id="welcomeMessage">
+                <div class="welcome-icon">👋</div>
+                <h2>欢迎使用 Coze Agent</h2>
+                <p>请先配置 API 地址、Authorization Token 和 Project ID</p>
+                <div class="info-box">
+                    <strong>💡 快速开始：</strong>
+                    <ol style="margin: 10px 0 10px 20px;">
+                        <li>点击上方 "显示配置"</li>
+                        <li>填入你的 Authorization Token</li>
+                        <li>点击 "保存配置"</li>
+                        <li>开始对话！</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- 输入区域 -->
+        <div class="input-container">
+            <div class="input-wrapper">
+                <textarea id="messageInput" class="message-input" 
+                          placeholder="输入你的消息..." 
+                          rows="1"
+                          onkeydown="handleKeyDown(event)"></textarea>
+                <button id="sendButton" class="btn-send" onclick="sendMessage()">发送</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 状态管理
+        let isLoading = false;
+        let configVisible = false;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfig();
+            if (!document.getElementById('sessionId').value) {
+                generateSessionId();
+            }
+        });
+
+        // 切换配置显示
+        function toggleConfig() {
+            configVisible = !configVisible;
+            document.getElementById('configContent').style.display = configVisible ? 'block' : 'none';
+        }
+
+        // 生成 Session ID
+        function generateSessionId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < 24; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('sessionId').value = result;
+        }
+
+        // 保存配置
+        function saveConfig() {
+            const config = {
+                apiUrl: document.getElementById('apiUrl').value,
+                projectId: document.getElementById('projectId').value,
+                authToken: document.getElementById('authToken').value,
+                sessionId: document.getElementById('sessionId').value
+            };
+            localStorage.setItem('cozeAgentConfig', JSON.stringify(config));
+            showNotification('配置已保存！');
+        }
+
+        // 加载配置
+        function loadConfig() {
+            const savedConfig = localStorage.getItem('cozeAgentConfig');
+            if (savedConfig) {
+                try {
+                    const config = JSON.parse(savedConfig);
+                    document.getElementById('apiUrl').value = config.apiUrl || '';
+                    document.getElementById('projectId').value = config.projectId || '';
+                    document.getElementById('authToken').value = config.authToken || '';
+                    document.getElementById('sessionId').value = config.sessionId || '';
+                } catch (e) {
+                    console.error('Failed to load config:', e);
+                }
+            }
+        }
+
+        // 显示通知
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #28a745;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+
+        // 添加动画样式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // 测试连接
+        async function testConnection() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const authToken = document.getElementById('authToken').value;
+            const projectId = document.getElementById('projectId').value;
+            const sessionId = document.getElementById('sessionId').value;
+            
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.innerHTML = '<div class="status-dot"></div><span>测试中...</span>';
+            
+            if (!authToken) {
+                statusDiv.innerHTML = '<div class="status-dot"></div><span>需要Token</span>';
+                statusDiv.className = 'connection-status status-disconnected';
+                showError('请先输入 Authorization Token');
+                return;
+            }
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': authToken.startsWith('Bearer ') ? authToken : 'Bearer ' + authToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: {
+                            query: {
+                                prompt: [
+                                    {
+                                        type: "text",
+                                        content: {
+                                            text: "你好"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        type: "query",
+                        session_id: sessionId,
+                        project_id: parseInt(projectId)
+                    })
+                });
+                
+                if (response.ok) {
+                    statusDiv.innerHTML = '<div class="status-dot"></div><span>连接成功</span>';
+                    statusDiv.className = 'connection-status status-connected';
+                    showNotification('连接成功！');
+                } else {
+                    throw new Error('Server responded with ' + response.status);
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="status-dot"></div><span>连接失败</span>';
+                statusDiv.className = 'connection-status status-disconnected';
+                showError('连接失败: ' + error.message);
+            }
+        }
+
+        // 发送消息
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message || isLoading) return;
+            
+            const apiUrl = document.getElementById('apiUrl').value;
+            const authToken = document.getElementById('authToken').value;
+            const projectId = document.getElementById('projectId').value;
+            const sessionId = document.getElementById('sessionId').value;
+            
+            if (!authToken) {
+                showError('请先配置 Authorization Token');
+                return;
+            }
+            
+            // 显示用户消息
+            addMessage('user', message);
+            input.value = '';
+            input.style.height = 'auto';
+            
+            // 隐藏欢迎消息
+            const welcomeMsg = document.getElementById('welcomeMessage');
+            if (welcomeMsg) {
+                welcomeMsg.remove();
+            }
+            
+            // 显示加载状态
+            isLoading = true;
+            showTypingIndicator();
+            document.getElementById('sendButton').disabled = true;
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': authToken.startsWith('Bearer ') ? authToken : 'Bearer ' + authToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: {
+                            query: {
+                                prompt: [
+                                    {
+                                        type: "text",
+                                        content: {
+                                            text: message
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        type: "query",
+                        session_id: sessionId,
+                        project_id: parseInt(projectId)
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('API请求失败: ' + response.status);
+                }
+                
+                const data = await response.json();
+                
+                // 移除加载状态
+                removeTypingIndicator();
+                
+                // 尝试解析响应
+                let assistantMessage = '';
+                
+                // 根据实际响应格式解析
+                if (typeof data === 'string') {
+                    assistantMessage = data;
+                } else if (data.content) {
+                    assistantMessage = data.content;
+                } else if (data.message) {
+                    assistantMessage = data.message;
+                } else if (data.output) {
+                    assistantMessage = data.output;
+                } else if (data.choices && data.choices[0]) {
+                    assistantMessage = data.choices[0].message?.content || JSON.stringify(data.choices[0]);
+                } else {
+                    assistantMessage = JSON.stringify(data, null, 2);
+                }
+                
+                // 显示回复
+                addMessage('assistant', assistantMessage);
+                
+                // 更新连接状态
+                document.getElementById('connectionStatus').innerHTML = '<div class="status-dot"></div><span>已连接</span>';
+                document.getElementById('connectionStatus').className = 'connection-status status-connected';
+                
+            } catch (error) {
+                removeTypingIndicator();
+                showError('错误: ' + error.message);
+            } finally {
+                isLoading = false;
+                document.getElementById('sendButton').disabled = false;
+            }
+        }
+
+        // 添加消息
+        function addMessage(role, content) {
+            const chatContainer = document.getElementById('chatContainer');
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = role === 'assistant' ? '🤖' : '👤';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = formatMessage(content);
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // 格式化消息
+        function formatMessage(text) {
+            let formatted = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\n/g, '<br>');
+            
+            return formatted;
+        }
+
+        // 显示输入中动画
+        function showTypingIndicator() {
+            const chatContainer = document.getElementById('chatContainer');
+            
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typingIndicator';
+            typingDiv.className = 'message assistant';
+            typingDiv.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            `;
+            
+            chatContainer.appendChild(typingDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // 移除输入中动画
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // 显示错误
+        function showError(message) {
+            const chatContainer = document.getElementById('chatContainer');
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            
+            chatContainer.appendChild(errorDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // 处理键盘事件
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // 自动调整输入框高度
+        document.getElementById('messageInput').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+        });
+    </script>
+</body>
+</html>
