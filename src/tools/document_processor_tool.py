@@ -38,34 +38,59 @@ def _extract_code_from_text(text):
 def _process_word_document(file_path_or_url):
     """处理单个Word文档，提取代码"""
     try:
-        # 使用fetch-url技能读取Word文档
-        client = FetchClient()
-        
-        # 判断是本地文件还是URL
-        if file_path_or_url.startswith('http'):
-            url = file_path_or_url
-        else:
-            # 本地文件，需要构造URL或者直接读取
-            # 先尝试直接读取文件内容
+        # 先尝试本地文件读取
+        if not file_path_or_url.startswith('http'):
             workspace_path = os.getenv("COZE_WORKSPACE_PATH", "/workspace/projects")
             full_path = os.path.join(workspace_path, file_path_or_url)
             
             if os.path.exists(full_path):
-                # 如果是本地文件，我们需要用docx2python来读取
+                # 尝试用docx2python读取（支持.docx）
                 try:
                     from docx2python import docx2python
                     result = docx2python(full_path)
                     text = result.text
                     code = _extract_code_from_text(text)
-                    return {"success": True, "code": code, "filename": os.path.basename(file_path_or_url)}
+                    if code and len(code.strip()) > 0:
+                        return {"success": True, "code": code, "filename": os.path.basename(file_path_or_url)}
                 except Exception as e:
-                    return {"success": False, "error": f"读取Word文档失败: {str(e)}", "filename": os.path.basename(file_path_or_url)}
+                    pass
+                
+                # 如果docx2python失败，尝试用textract（支持更多格式）
+                try:
+                    import textract
+                    text = textract.process(full_path).decode('utf-8')
+                    code = _extract_code_from_text(text)
+                    if code and len(code.strip()) > 0:
+                        return {"success": True, "code": code, "filename": os.path.basename(file_path_or_url)}
+                except Exception as e:
+                    pass
+                
+                # 如果都失败，尝试直接读取文件内容
+                try:
+                    with open(full_path, 'rb') as f:
+                        # 尝试作为文本读取
+                        content = f.read()
+                        # 尝试不同的编码
+                        for encoding in ['utf-8', 'gbk', 'gb2312', 'latin1']:
+                            try:
+                                text = content.decode(encoding)
+                                code = _extract_code_from_text(text)
+                                if code and len(code.strip()) > 0:
+                                    return {"success": True, "code": code, "filename": os.path.basename(file_path_or_url)}
+                            except:
+                                continue
+                except Exception as e:
+                    pass
+                
+                # 如果所有方法都失败，返回错误
+                return {"success": False, "error": "无法从文档中提取代码，请直接粘贴代码内容", "filename": os.path.basename(file_path_or_url)}
         
-        # 使用fetch-url读取
-        response = client.fetch(url=url)
+        # 如果是URL，使用fetch-url
+        client = FetchClient()
+        response = client.fetch(url=file_path_or_url)
         
         if response.status_code != 0:
-            return {"success": False, "error": f"获取文档失败: {response.status_message}", "filename": url}
+            return {"success": False, "error": f"获取文档失败: {response.status_message}", "filename": file_path_or_url}
         
         # 提取文本内容
         text_content = []
@@ -76,10 +101,10 @@ def _process_word_document(file_path_or_url):
         full_text = "\n".join(text_content)
         code = _extract_code_from_text(full_text)
         
-        return {"success": True, "code": code, "filename": response.title or os.path.basename(url)}
+        return {"success": True, "code": code, "filename": response.title or os.path.basename(file_path_or_url)}
         
     except Exception as e:
-        return {"success": False, "error": f"处理文档时出错: {str(e)}", "filename": file_path_or_url}
+        return {"success": False, "error": f"处理文档时出错: {str(e)}，请直接粘贴代码内容", "filename": file_path_or_url}
 
 
 @tool
