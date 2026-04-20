@@ -9,7 +9,9 @@ import cozeloop
 import uvicorn
 import time
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import StreamingResponse, JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+import os
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph, END
 from langgraph.graph.state import CompiledStateGraph
@@ -235,6 +237,20 @@ class GraphService:
 
 service = GraphService()
 app = FastAPI()
+
+# 挂载静态文件目录
+workspace_path = os.getenv("COZE_WORKSPACE_PATH", "/workspace/projects")
+static_dir = os.path.join(workspace_path, "static")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+# 根路径返回前端页面
+@app.get("/")
+async def root():
+    index_path = os.path.join(static_dir, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return {"message": "Static file not found"}
 
 # OpenAI 兼容接口处理器
 openai_handler = OpenAIChatHandler(service)
