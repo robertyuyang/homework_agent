@@ -4,22 +4,50 @@
 
 这是一个功能完整的 Agent 对话系统，可以在 GitHub Pages 上部署！
 
-- ✅ **前端页面**：美观的聊天界面，支持演示模式和 API 模式
+- ✅ **Coze Agent 页面**：专门为 Coze API 设计的聊天界面 ⭐
+- ✅ **通用 Agent 页面**：支持自定义后端 API 的通用界面
 - ✅ **后端服务**：与你的 Agent 完美集成的 FastAPI 服务
 - ✅ **GitHub Pages**：一键部署，无需服务器
 
 ---
 
+## 🎯 选择适合你的页面
+
+### 🚀 Coze Agent 页面（推荐）
+**文件**: `index.html` 或 `coze-agent-chat.html`
+
+专为 Coze API 设计：
+- ✅ 支持 Authorization Token 配置
+- ✅ 支持 Project ID 配置
+- ✅ 支持 Session ID 管理
+- ✅ 配置持久化到 localStorage
+- ✅ 内置连接测试功能
+
+**快速开始**: 查看 [QUICK_START.md](./QUICK_START.md)
+
+---
+
+### 🌐 通用 Agent 页面
+**文件**: `agent-chat.html`
+
+通用 API 兼容：
+- ✅ 演示模式（无需后端）
+- ✅ API 模式（连接自定义后端）
+- ✅ 灵活的 API 格式支持
+
+---
+
 ## 🚀 快速开始
 
-### 方式一：GitHub Pages 部署（纯前端）
+### 方式一：GitHub Pages 部署
 
 #### 1️⃣ 准备文件
 
 确保你的仓库中有以下文件：
-- `agent-chat.html` - 主页面
+- `index.html` - Coze Agent 主页面 ⭐
 - `.nojekyll` - GitHub Pages 配置
 - `README.md` - 说明文档（本文件）
+- `QUICK_START.md` - 快速配置指南
 
 #### 2️⃣ 启用 GitHub Pages
 
@@ -33,11 +61,30 @@
 
 #### 3️⃣ 访问你的页面
 
-几分钟后，访问：`https://你的用户名.github.io/仓库名/agent-chat.html`
+几分钟后，访问：`https://你的用户名.github.io/仓库名/`
 
 ---
 
-### 方式二：本地完整部署（推荐）
+### 方式二：本地直接使用
+
+#### 1️⃣ 打开页面
+
+直接在浏览器中打开：
+```bash
+# Coze Agent 页面
+open github-pages/index.html
+
+# 或通用页面
+open github-pages/agent-chat.html
+```
+
+#### 2️⃣ 配置参数
+
+根据页面提示配置 API 地址和 Token。
+
+---
+
+### 方式三：本地完整部署（带后端）
 
 #### 1️⃣ 克隆或下载项目
 
@@ -69,8 +116,10 @@ python -m src.chat_server
 
 | 文件 | 说明 |
 |------|------|
-| `agent-chat.html` | 聊天主页面 ⭐ |
-| `index.html` | 旧版作业评分页面 |
+| `index.html` | Coze Agent 主页面 ⭐ |
+| `coze-agent-chat.html` | Coze Agent 页面（副本） |
+| `agent-chat.html` | 通用 Agent 页面 |
+| `QUICK_START.md` | Coze Agent 快速配置指南 ⭐ |
 | `API_GUIDE.md` | API 接口详细文档 |
 | `README.md` | 本说明文件 |
 | `.nojekyll` | GitHub Pages 配置 |
@@ -84,38 +133,31 @@ python -m src.chat_server
 
 ---
 
-## 🎯 使用指南
-
-### 前端页面功能
-
-#### 🎮 演示模式
-- 无需后端，直接体验完整界面
-- 智能的演示回复
-- 测试所有交互功能
-
-#### 🔌 API 模式
-- 配置你的后端地址
-- 连接真实的 Agent 服务
-- 享受完整的 AI 对话体验
+## 🎯 Coze Agent 页面使用指南
 
 ### 配置步骤
 
 1. **打开页面**
-   - GitHub Pages: `https://你的用户名.github.io/仓库名/agent-chat.html`
-   - 本地: `http://localhost:8000`
+   - GitHub Pages: `https://你的用户名.github.io/仓库名/`
+   - 本地: 直接打开 `index.html`
 
-2. **切换模式**
-   - 点击右上角 "演示模式" / "API模式"
+2. **显示配置**
+   - 点击 "⚙️ 显示/隐藏配置"
 
-3. **配置后端（API模式）**
-   - 在 "后端地址" 输入框填写你的 API 地址
-   - 例如：`http://localhost:8000/chat`
-   - 点击 "测试连接"
+3. **填写配置**
+   - **API地址**: `https://qz23wrnyv4.coze.site/stream_run`
+   - **Project ID**: `7630729322323787795`
+   - **Authorization Token**: `Bearer eyJhbGciOiJSUzI1NiIs...`（你的Token）
+   - **Session ID**: 点击 "🔄 生成Session ID"
 
-4. **开始对话**
-   - 在输入框输入消息
-   - 按 Enter 或点击发送
-   - 享受智能对话！
+4. **保存并测试**
+   - 点击 "💾 保存配置"
+   - 点击 "🔗 测试连接"
+
+5. **开始对话**
+   - 输入消息，按回车发送！
+
+详细指南请查看 [QUICK_START.md](./QUICK_START.md)
 
 ---
 
@@ -139,7 +181,7 @@ curl -X POST http://localhost:8000/chat \
 
 ### API 规范
 
-**请求：**
+**通用格式：**
 ```json
 POST /chat
 {
@@ -150,11 +192,18 @@ POST /chat
 }
 ```
 
-**响应：**
+**Coze 格式：**
 ```json
+POST /stream_run
 {
-  "content": "助手的回复内容",
-  "model": "agent"
+  "content": {
+    "query": {
+      "prompt": [{"type": "text", "content": {"text": "用户消息"}}]
+    }
+  },
+  "type": "query",
+  "session_id": "会话ID",
+  "project_id": 项目ID
 }
 ```
 
@@ -166,24 +215,24 @@ POST /chat
 
 ```
 ┌─────────────────┐         ┌─────────────────┐
-│  GitHub Pages   │         │   后端服务      │
-│  (前端页面)     │◄───────►│  (你的Agent)    │
+│  GitHub Pages   │         │   Coze API      │
+│  (前端页面)     │◄───────►│  (你的服务)     │
 │                 │   API   │                 │
-│ agent-chat.html │         │  chat_server.py │
+│   index.html    │         │  stream_run     │
 └─────────────────┘         └─────────────────┘
 ```
 
 ### 部署选项
 
-1. **GitHub Pages + 本地后端**
+1. **GitHub Pages + Coze API**
    - 前端：GitHub Pages
-   - 后端：本地运行（localhost）
-   - 适用：个人开发、测试
+   - 后端：Coze 提供的 API
+   - 适用：最简单的方式 ⭐
 
-2. **GitHub Pages + 云后端**
+2. **GitHub Pages + 自定义后端**
    - 前端：GitHub Pages
    - 后端：Vercel/Railway/Render/云服务器
-   - 适用：公开访问、分享给他人
+   - 适用：需要自定义逻辑
 
 3. **完全本地部署**
    - 前端 + 后端都在本地
@@ -191,54 +240,39 @@ POST /chat
 
 ---
 
-## 📚 详细文档
-
-- [API 接口文档](./API_GUIDE.md) - 完整的 API 规范和示例代码
-- [FastAPI 文档](http://localhost:8000/docs) - 启动后端后访问自动生成的文档
-
----
-
-## 🎨 自定义配置
-
-### 修改配色
-
-编辑 `agent-chat.html` 中的 CSS：
-
-```css
-/* 渐变色背景 */
-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-```
-
-### 修改页面标题
-
-```html
-<title>🤖 我的智能助手</title>
-```
-
-### 添加自定义功能
-
-前端使用纯 HTML/CSS/JavaScript，可以随意扩展！
-
----
-
 ## ❓ 常见问题
 
-### Q: GitHub Pages 上可以使用完整功能吗？
-A: GitHub Pages 只能托管静态页面。你需要：
-- 在 GitHub Pages 上使用前端页面
-- 后端服务部署在其他地方（本地、云服务器等）
+### Q: Coze Agent 页面和通用页面有什么区别？
+A:
+- **Coze Agent 页面**: 专门为 Coze API 设计，支持 Token、Project ID、Session ID 等配置
+- **通用页面**: 支持自定义后端 API，适合通用场景
+
+### Q: GitHub Pages 上可以直接使用 Coze API 吗？
+A: 可以！只需要：
+1. 部署 `index.html` 到 GitHub Pages
+2. 配置你的 Coze API 地址和 Token
+3. 开始对话！
+
+### Q: Token 安全吗？
+A: Token 只保存在浏览器的 localStorage 中，不会发送到其他服务器。但请注意：
+- 不要在公共电脑上使用
+- 定期更换 Token
+- 不要分享包含 Token 的配置
 
 ### Q: 如何让其他人也能使用？
-A: 
-1. 将后端部署到公网服务器
-2. 配置公网 API 地址
-3. 分享 GitHub Pages 链接给他人
+A:
+1. 将 `index.html` 部署到 GitHub Pages
+2. 分享访问链接
+3. 告知对方需要配置自己的 Token
 
-### Q: 支持流式响应吗？
-A: 当前版本使用简单的请求-响应模式。如需流式响应，请参考 API 文档扩展。
+---
 
-### Q: 如何添加身份验证？
-A: 可以在 API 请求头中添加 API Key，详细请参考 API_GUIDE.md。
+## 📚 文档索引
+
+- 🚀 [Coze Agent 快速配置](./QUICK_START.md) ⭐
+- 📖 [完整部署指南](./README.md)
+- 🔌 [API 接口文档](./API_GUIDE.md)
+- 📚 [FastAPI 自动文档](http://localhost:8000/docs) (启动后端后访问)
 
 ---
 
