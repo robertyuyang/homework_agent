@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>矩形重合面积计算 - 作业评分系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .notice {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            color: #856404;
+        }
+
+        .notice h3 {
+            margin-bottom: 10px;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s;
+            border: none;
+            background: none;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            background: white;
+        }
+
+        .tab-content {
+            padding: 40px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 1.1em;
+        }
+
+        .code-input {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .code-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .file-upload {
+            border: 3px dashed #dee2e6;
+            border-radius: 15px;
+            padding: 50px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .file-upload.dragover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+
+        .file-upload p {
+            color: #6c757d;
+            font-size: 1.1em;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-section {
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .score-display {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .score-number {
+            font-size: 4em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .score-label {
+            font-size: 1.3em;
+            color: #6c757d;
+        }
+
+        .result-content {
+            line-height: 1.8;
+        }
+
+        .result-content h3 {
+            color: #495057;
+            margin: 20px 0 10px;
+            font-size: 1.3em;
+        }
+
+        .result-content pre {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid #dee2e6;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading p {
+            color: #6c757d;
+            font-size: 1.2em;
+        }
+
+        .demo-notice {
+            background: #d1ecf1;
+            border-left: 5px solid #17a2b8;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            color: #0c5460;
+        }
+
+        .demo-notice h4 {
+            margin-bottom: 10px;
+        }
+
+        .github-info {
+            background: #e7f3ff;
+            border-left: 5px solid #0d6efd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            color: #084298;
+        }
+
+        .github-info h3 {
+            margin-bottom: 10px;
+        }
+
+        .github-info a {
+            color: #0d6efd;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .github-info a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 矩形重合面积计算</h1>
+            <p>作业智能评分系统</p>
+        </div>
+
+        <div class="github-info">
+            <h3>🚀 GitHub Pages 版本</h3>
+            <p>这是一个纯静态演示版本，部署在 GitHub Pages 上。</p>
+            <p>完整功能需要后端支持，访问本地部署版本获取完整体验。</p>
+            <p><strong>源代码</strong>：<a href="https://github.com/your-username/your-repo" target="_blank">查看 GitHub 仓库</a></p>
+        </div>
+
+        <div class="notice">
+            <h3>⚠️ 演示版本说明</h3>
+            <p>这是一个纯静态演示版本，部署在 GitHub Pages 上。</p>
+            <p>✅ 界面功能完整 | ⚠️ 评分功能为演示</p>
+        </div>
+
+        <div class="main-card">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('code')">💻 粘贴代码</button>
+                <button class="tab" onclick="switchTab('file')">📁 上传文件</button>
+            </div>
+
+            <div class="tab-content">
+                <!-- 粘贴代码 -->
+                <div id="code-tab" class="tab-pane active">
+                    <div class="form-group">
+                        <label>粘贴学生代码：</label>
+                        <textarea id="codeInput" class="code-input" placeholder="在这里粘贴Python代码...
+
+示例：
+import csv
+
+def calcArea(filepath):
+    results = []
+    with open(filepath, newline='') as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            left = max(int(row[0]), int(row[3]))
+            right = min(int(row[1]), int(row[4]))
+            if right <= left:
+                results.append(0)
+            else:
+                results.append((right - left) * min(int(row[2]), int(row[5])))
+    return results
+
+if __name__ == '__main__':
+    print(calcArea('rectangles.csv'))
+"></textarea>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="gradeCode()">开始评分 (演示)</button>
+                </div>
+
+                <!-- 上传文件 -->
+                <div id="file-tab" class="tab-pane">
+                    <div class="form-group">
+                        <label>上传 Word 文档或 Zip 包：</label>
+                        <div class="file-upload" onclick="document.getElementById('fileInput').click()" id="dropZone">
+                            <div class="upload-icon">📄</div>
+                            <p>点击或拖拽文件到这里<br><small>支持 .doc, .docx, .zip</small></p>
+                            <input type="file" id="fileInput" class="file-input" accept=".doc,.docx,.zip" onchange="handleFileSelect(event)">
+                        </div>
+                        <div class="file-list" id="fileList"></div>
+                    </div>
+
+                    <button class="btn btn-primary" id="gradeFileBtn" onclick="gradeFile()" disabled>开始评分 (演示)</button>
+                </div>
+            </div>
+
+            <!-- 加载状态 -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>正在评分中，请稍候...</p>
+            </div>
+
+            <!-- 结果展示 -->
+            <div id="resultSection" class="result-section" style="display: none;">
+                <div class="result-card">
+                    <div id="resultContent"></div>
+                </div>
+            </div>
+
+            <div class="demo-notice">
+                <h4>🎯 关于完整功能</h4>
+                <p><strong>本地部署版本</strong>：包含完整的 AI 评分功能</p>
+                <p><strong>GitHub Pages 版本</strong>：界面演示，评分功能为模拟</p>
+                <p>需要完整功能请下载项目到本地部署！</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab + '-tab').classList.add('active');
+            
+            hideResult();
+        }
+
+        // 文件拖拽
+        const dropZone = document.getElementById('dropZone');
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            selectedFile = file;
+            document.getElementById('fileList').innerHTML = `
+                <div class="file-item">
+                    <span>📄 ${file.name}</span>
+                    <span style="color: #28a745; font-weight: 600;">✓ 已选择</span>
+                </div>
+            `;
+            document.getElementById('gradeFileBtn').disabled = false;
+        }
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('resultSection').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('active');
+        }
+
+        function showResult(content) {
+            hideLoading();
+            document.getElementById('resultContent').innerHTML = content;
+            document.getElementById('resultSection').style.display = 'block';
+        }
+
+        function hideResult() {
+            document.getElementById('resultSection').style.display = 'none';
+        }
+
+        async function gradeCode() {
+            const code = document.getElementById('codeInput').value;
+            if (!code.trim()) {
+                alert('请先粘贴代码！');
+                return;
+            }
+
+            showLoading();
+            
+            // 演示版本 - 模拟评分
+            setTimeout(() => {
+                showResult(`
+                    <div class="score-display">
+                        <div class="score-number">3</div>
+                        <div class="score-label">/ 3 分</div>
+                    </div>
+                    <div class="result-content">
+                        <h3>🎬 GitHub Pages 演示版本</h3>
+                        <pre>这是一个演示版本！
+
+完整的 AI 评分功能需要后端支持。
+
+要获得完整功能：
+1. 下载项目源代码
+2. 在本地部署后端服务
+3. 享受完整的智能评分功能！
+
+📊 模拟评分结果（示例）
+================================
+
+## 评分详情
+
+1. 正确计算矩形重合面积 - 2/2 分
+   ✓ 计算逻辑正确
+   ✓ 边界处理正确
+
+2. 正确读取并通过测试用例 - 1/1 分
+   ✓ 通过率 100%
+
+综合评分：3/3 分 🎉
+</pre>
+                    </div>
+                `);
+            }, 1500);
+        }
+
+        async function gradeFile() {
+            if (!selectedFile) {
+                alert('请先选择文件！');
+                return;
+            }
+
+            showLoading();
+            
+            // 演示版本 - 模拟评分
+            setTimeout(() => {
+                showResult(`
+                    <div class="score-display">
+                        <div class="score-number">3</div>
+                        <div class="score-label">/ 3 分</div>
+                    </div>
+                    <div class="result-content">
+                        <h3>🎬 GitHub Pages 演示版本</h3>
+                        <pre>文件：${selectedFile.name}
+
+这是一个演示版本！
+
+完整的文件处理和 AI 评分功能
+需要后端支持才能使用。
+
+请下载项目到本地部署！</pre>
+                    </div>
+                `);
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
