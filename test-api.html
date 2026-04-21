@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 API 测试工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .status {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        pre {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 API 测试工具</h1>
+        <p>这个工具帮你测试哪个代理可以正常工作！</p>
+
+        <!-- 测试 1：直接调用 Coze API -->
+        <div class="test-section">
+            <h2>🧪 测试 1：直接调用 Coze API（应该会失败，CORS）</h2>
+            <div class="form-group">
+                <label>API 地址：</label>
+                <input type="text" id="directUrl" value="https://qz23wrnyv4.coze.site/stream_run">
+            </div>
+            <div class="form-group">
+                <label>Authorization Token：</label>
+                <input type="text" id="directToken" placeholder="Bearer eyJhbGciOiJSUzI1NiIs...">
+            </div>
+            <button onclick="testDirectAPI()">测试直接调用</button>
+            <div id="directResult" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- 测试 2：AllOrigins 代理 -->
+        <div class="test-section">
+            <h2>🧪 测试 2：AllOrigins 代理</h2>
+            <div class="form-group">
+                <label>代理地址：</label>
+                <input type="text" id="proxy1Url" value="https://api.allorigins.win/raw?url=https://qz23wrnyv4.coze.site/stream_run">
+            </div>
+            <div class="form-group">
+                <label>Authorization Token：</label>
+                <input type="text" id="proxy1Token" placeholder="Bearer eyJhbGciOiJSUzI1NiIs...">
+            </div>
+            <button onclick="testProxy1()">测试 AllOrigins</button>
+            <div id="proxy1Result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- 测试 3：CorsProxy.io -->
+        <div class="test-section">
+            <h2>🧪 测试 3：CorsProxy.io</h2>
+            <div class="form-group">
+                <label>代理地址：</label>
+                <input type="text" id="proxy2Url" value="https://corsproxy.io/?https://qz23wrnyv4.coze.site/stream_run">
+            </div>
+            <div class="form-group">
+                <label>Authorization Token：</label>
+                <input type="text" id="proxy2Token" placeholder="Bearer eyJhbGciOiJSUzI1NiIs...">
+            </div>
+            <button onclick="testProxy2()">测试 CorsProxy</button>
+            <div id="proxy2Result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- 测试 4：如果你有 Cloudflare Worker -->
+        <div class="test-section">
+            <h2>🧪 测试 4：Cloudflare Worker（如果你部署了）</h2>
+            <div class="form-group">
+                <label>Worker 地址：</label>
+                <input type="text" id="workerUrl" placeholder="https://coze-proxy.yourname.workers.dev">
+            </div>
+            <div class="form-group">
+                <label>Authorization Token：</label>
+                <input type="text" id="workerToken" placeholder="Bearer eyJhbGciOiJSUzI1NiIs...">
+            </div>
+            <button onclick="testWorker()">测试 Cloudflare Worker</button>
+            <div id="workerResult" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- 推荐方案 -->
+        <div class="test-section">
+            <h2>🎯 推荐方案</h2>
+            <p>如果以上公共代理都不行，强烈推荐部署 <strong>Cloudflare Worker</strong>：</p>
+            <ul>
+                <li>✅ 完全免费</li>
+                <li>✅ 部署超简单（3 步）</li>
+                <li>✅ 支持 POST 请求</li>
+                <li>✅ 速度超快</li>
+            </ul>
+            <p>详细步骤请查看：<code>CLOUDFLARE_DEPLOY.md</code></p>
+        </div>
+    </div>
+
+    <script>
+        // 测试数据
+        const testData = {
+            content: {
+                query: {
+                    prompt: [
+                        {
+                            type: "text",
+                            content: {
+                                text: "你好"
+                            }
+                        }
+                    ]
+                }
+            },
+            type: "query",
+            session_id: "test-session-123",
+            project_id: 7630729322323787795
+        };
+
+        async function testAPI(url, token, resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<div class="status">⏳ 测试中...</div>';
+
+            try {
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                if (token) {
+                    headers['Authorization'] = token.startsWith('Bearer ') ? token : 'Bearer ' + token;
+                }
+
+                console.log('Testing:', url);
+                console.log('Headers:', headers);
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(testData)
+                });
+
+                console.log('Response status:', response.status);
+
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    <div class="status">✅ 成功！状态码: ${response.status}</div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <div class="status">❌ 失败</div>
+                    <pre>${error.message}</pre>
+                    <p style="margin-top:10px;"><strong>建议：</strong>试试 Cloudflare Worker，见 CLOUDFLARE_DEPLOY.md</p>
+                `;
+            }
+        }
+
+        function testDirectAPI() {
+            const url = document.getElementById('directUrl').value;
+            const token = document.getElementById('directToken').value;
+            testAPI(url, token, 'directResult');
+        }
+
+        function testProxy1() {
+            const url = document.getElementById('proxy1Url').value;
+            const token = document.getElementById('proxy1Token').value;
+            testAPI(url, token, 'proxy1Result');
+        }
+
+        function testProxy2() {
+            const url = document.getElementById('proxy2Url').value;
+            const token = document.getElementById('proxy2Token').value;
+            testAPI(url, token, 'proxy2Result');
+        }
+
+        function testWorker() {
+            const url = document.getElementById('workerUrl').value;
+            const token = document.getElementById('workerToken').value;
+            testAPI(url, token, 'workerResult');
+        }
+
+        // 自动填充 Token（如果有的话）
+        const savedConfig = localStorage.getItem('cozeAgentConfig');
+        if (savedConfig) {
+            try {
+                const config = JSON.parse(savedConfig);
+                if (config.authToken) {
+                    document.getElementById('directToken').value = config.authToken;
+                    document.getElementById('proxy1Token').value = config.authToken;
+                    document.getElementById('proxy2Token').value = config.authToken;
+                    document.getElementById('workerToken').value = config.authToken;
+                }
+            } catch (e) {}
+        }
+    </script>
+</body>
+</html>
