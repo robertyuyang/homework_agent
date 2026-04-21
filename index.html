@@ -390,7 +390,8 @@
                     <div class="config-group">
                         <span class="config-label">API地址:</span>
                         <input type="text" id="apiUrl" class="config-input" 
-                               placeholder="https://your-proxy.workers.dev">
+                               placeholder="https://your-proxy.workers.dev"
+                               value="https://broad-hat-501f.robertyuyang.workers.dev/?target=https://qz23wrnyv4.coze.site/stream_run">
                     </div>
                     <div class="config-group">
                         <span class="config-label">Project ID:</span>
@@ -558,7 +559,7 @@
             if (savedConfig) {
                 try {
                     const config = JSON.parse(savedConfig);
-                    document.getElementById('apiUrl').value = config.apiUrl || '';
+                    document.getElementById('apiUrl').value = config.apiUrl || 'https://broad-hat-501f.robertyuyang.workers.dev/?target=https://qz23wrnyv4.coze.site/stream_run';
                     document.getElementById('projectId').value = config.projectId || '7630729322323787795';
                     document.getElementById('authToken').value = config.authToken || '';
                     document.getElementById('sessionId').value = config.sessionId || '';
@@ -568,6 +569,10 @@
                 } catch (e) {
                     console.error('Failed to load config:', e);
                 }
+            } else {
+                // 首次使用，设置默认值
+                document.getElementById('apiUrl').value = 'https://broad-hat-501f.robertyuyang.workers.dev/?target=https://qz23wrnyv4.coze.site/stream_run';
+                document.getElementById('projectId').value = '7630729322323787795';
             }
         }
 
