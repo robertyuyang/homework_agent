@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 API 诊断工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #667eea;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        textarea {
+            font-family: 'Courier New', monospace;
+            min-height: 100px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        button.danger {
+            background: #dc3545;
+        }
+        button.success {
+            background: #28a745;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .status {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        pre {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .info-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            color: #856404;
+        }
+        .recommendation {
+            background: #e7f3ff;
+            border-left: 5px solid #0d6efd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            color: #084298;
+        }
+        .recommendation h3 {
+            margin-top: 0;
+        }
+        .steps {
+            margin-left: 20px;
+        }
+        .steps li {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 API 诊断工具</h1>
+        
+        <div class="info-box">
+            <strong>💡 问题诊断：</strong>
+            <p>公共代理（如 api.allorigins.win）对 POST 请求支持很差，这是正常的！</p>
+            <p>我们需要测试一下，然后给你推荐更好的方案！</p>
+        </div>
+
+        <h2>📝 你的配置信息</h2>
+        <div class="test-section">
+            <div class="form-group">
+                <label>API 地址（使用代理）：</label>
+                <input type="text" id="proxyApiUrl" 
+                       value="https://api.allorigins.win/raw?url=https://qz23wrnyv4.coze.site/stream_run">
+            </div>
+            <div class="form-group">
+                <label>直接 API 地址（不使用代理）：</label>
+                <input type="text" id="directApiUrl" 
+                       value="https://qz23wrnyv4.coze.site/stream_run">
+            </div>
+            <div class="form-group">
+                <label>Authorization Token：</label>
+                <textarea id="authToken">eyJhbGciOiJSUzI1NiIsImtpZCI6IjliOWYxZTRjLWE4ZWYtNDA4Yy1iYjU2LTMwNmI5NjJhMzllMCJ9.eyJpc3MiOiJodHRwczovL2FwaS5jb3plLmNuIiwiYXVkIjpbImxVZDkyZGd0bElCZ1FyOWNEQ3RVREQwUWdjcUhOd3RpIl0sImV4cCI6ODIxMDI2Njg3Njc5OSwiaWF0IjoxNzc2NjkyOTkxLCJzdWIiOiJzcGlmZmU6Ly9hcGkuY296ZS5jbi93b3JrbG9hZF9pZGVudGl0eS9pZDo3NjMwNzMxMTc2NTQxNDIxNTg3Iiwic3JjIjoiaW5ib3VuZF9hdXRoX2FjY2Vzc190b2tlbl9pZDo3NjMwODM4MjkxNjU4NDQwNzY3In0.VfCeFyICEY0G5iRo9mZOkQpd5kMccqT8lwJ53CLLZQGxkoHI8sEdtBeZe7gtnhZN55iSfpNNItEh_LTkOVZrks_VyJHmfjkiVcglcDYxCLvuTb2bdH3wd2nKaSRkO1iJsTHMeB-Nim949kkhBBvAxE53InnNZmlWzmuCz9a5EimnORxiv53O3hXAwNr9L0wJmsDsxF4y89jdDVcqk38CSxBHTdC0qWYmTUnifZPZvBW1KBN2Jq81YB1Nz1CZ06bUhLsypeXhN0UilkJ_jNFMyeLldpSd_UYwYhtJJaGRKMNgeMrVC6GKs1b8s1EOMH4z7kyFrWgi-K64nBuIweEeBQ</textarea>
+            </div>
+            <div class="form-group">
+                <label>Project ID：</label>
+                <input type="text" id="projectId" value="7630729322323787795">
+            </div>
+            <div class="form-group">
+                <label>Session ID：</label>
+                <input type="text" id="sessionId" value="ksZbQkYurfCmcWfyQipMTvIU">
+            </div>
+        </div>
+
+        <h2>🧪 测试 1：直接调用（应该会 CORS 失败）</h2>
+        <div class="test-section">
+            <p>直接调用 Coze API，不使用代理（浏览器会阻止跨域请求）</p>
+            <button onclick="testDirectAPI()">测试直接调用</button>
+            <div id="directResult" class="result" style="display:none;"></div>
+        </div>
+
+        <h2>🧪 测试 2：使用 api.allorigins.win 代理</h2>
+        <div class="test-section">
+            <p>使用公共代理，看看是否支持 POST</p>
+            <button onclick="testProxyAPI()">测试代理调用</button>
+            <div id="proxyResult" class="result" style="display:none;"></div>
+        </div>
+
+        <h2>🧪 测试 3：其他公共代理</h2>
+        <div class="test-section">
+            <p>试试其他公共代理（可能也不行）</p>
+            <button onclick="testOtherProxies()">测试其他代理</button>
+            <div id="otherProxyResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="recommendation">
+            <h3>🎯 我的推荐方案（最好用）</h3>
+            <p><strong>公共代理对 POST 支持都很差！</strong> 我强烈推荐部署 <strong>Cloudflare Workers</strong>！</p>
+            
+            <div class="steps">
+                <h4>✅ 为什么推荐 Cloudflare Workers？</h4>
+                <ul>
+                    <li>🆓 <strong>完全免费</strong>（每天 10 万次请求）</li>
+                    <li>⚡ <strong>超快</strong>（全球 CDN 节点）</li>
+                    <li>🛠️ <strong>超简单</strong>（5 分钟部署）</li>
+                    <li>✅ <strong>完美支持 POST</strong></li>
+                </ul>
+            </div>
+            
+            <div class="steps">
+                <h4>🚀 部署步骤：</h4>
+                <ol>
+                    <li>访问：<a href="https://workers.cloudflare.com" target="_blank">workers.cloudflare.com</a></li>
+                    <li>注册/登录 Cloudflare 账号</li>
+                    <li>点击 "Create application" → "Create Worker"</li>
+                    <li>删除默认代码，复制 <code>cloudflare-worker.js</code> 的内容</li>
+                    <li>点击 "Save and Deploy"</li>
+                    <li>搞定！得到一个类似：<code>https://coze-proxy.yourname.workers.dev</code> 的地址</li>
+                </ol>
+            </div>
+            
+            <button class="success" onclick="window.open('https://workers.cloudflare.com', '_blank')">
+                🚀 立即去部署 Cloudflare Workers
+            </button>
+        </div>
+
+        <div class="info-box">
+            <strong>💡 或者：</strong>
+            <p>如果你不想部署，直接用页面的 <strong>🎮 演示模式</strong> 先体验界面功能！</p>
+        </div>
+    </div>
+
+    <script>
+        function getTestBody() {
+            return {
+                content: {
+                    query: {
+                        prompt: [
+                            {
+                                type: "text",
+                                content: {
+                                    text: "你好"
+                                }
+                            }
+                        ]
+                    }
+                },
+                type: "query",
+                session_id: document.getElementById('sessionId').value,
+                project_id: parseInt(document.getElementById('projectId').value)
+            };
+        }
+
+        function getToken() {
+            const token = document.getElementById('authToken').value;
+            return token.startsWith('Bearer ') ? token : 'Bearer ' + token;
+        }
+
+        function showResult(elementId, status, message, data, isError) {
+            const resultDiv = document.getElementById(elementId);
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result ' + (isError ? 'error' : 'success');
+            
+            let html = `<div class="status">${status}</div>`;
+            if (message) {
+                html += `<p>${message}</p>`;
+            }
+            if (data) {
+                html += `<pre>${typeof data === 'string' ? data : JSON.stringify(data, null, 2)}</pre>`;
+            }
+            
+            resultDiv.innerHTML = html;
+        }
+
+        async function testDirectAPI() {
+            showResult('directResult', '⏳ 测试中...', '正在直接调用 Coze API...');
+            
+            try {
+                const response = await fetch(document.getElementById('directApiUrl').value, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': getToken(),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(getTestBody())
+                });
+                
+                const data = await response.json();
+                showResult('directResult', '❌ 意料之中 - CORS 失败', 
+                    '浏览器阻止了跨域请求，这是正常的！', data, true);
+            } catch (error) {
+                showResult('directResult', '❌ CORS 失败（正常）', 
+                    '这是正常的！浏览器阻止了跨域请求。我们需要代理！', 
+                    error.message, true);
+            }
+        }
+
+        async function testProxyAPI() {
+            showResult('proxyResult', '⏳ 测试中...', '正在使用 api.allorigins.win 代理...');
+            
+            try {
+                const response = await fetch(document.getElementById('proxyApiUrl').value, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': getToken(),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(getTestBody())
+                });
+                
+                const data = await response.json();
+                showResult('proxyResult', '✅ 成功！', '代理工作正常！', data);
+            } catch (error) {
+                showResult('proxyResult', '❌ 代理失败', 
+                    'api.allorigins.win 对 POST 支持不好，这很常见！', 
+                    error.message, true);
+            }
+        }
+
+        async function testOtherProxies() {
+            const proxies = [
+                'https://corsproxy.io/?https://qz23wrnyv4.coze.site/stream_run',
+                'https://api.codetabs.com/v1/proxy?quest=https://qz23wrnyv4.coze.site/stream_run'
+            ];
+            
+            showResult('otherProxyResult', '⏳ 测试中...', '正在测试其他公共代理...');
+            
+            let results = [];
+            
+            for (let i = 0; i < proxies.length; i++) {
+                try {
+                    const response = await fetch(proxies[i], {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': getToken(),
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(getTestBody())
+                    });
+                    
+                    const data = await response.json();
+                    results.push({ proxy: proxies[i], status: '✅ 成功', data });
+                } catch (error) {
+                    results.push({ proxy: proxies[i], status: '❌ 失败', error: error.message });
+                }
+            }
+            
+            const allFailed = results.every(r => r.status.startsWith('❌'));
+            
+            if (allFailed) {
+                showResult('otherProxyResult', '❌ 所有公共代理都失败了', 
+                    '公共代理对 POST 支持都很差！强烈推荐部署 Cloudflare Workers！', 
+                    results, true);
+            } else {
+                showResult('otherProxyResult', '⚠️ 部分成功', 
+                    '即使有成功的，也推荐用 Cloudflare Workers 更稳定！', 
+                    results);
+            }
+        }
+    </script>
+</body>
+</html>
