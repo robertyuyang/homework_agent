@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤖 Coze Agent 智能对话</title>
+    <title>🤖 Coze Agent 智能对话（最终版）</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -310,7 +310,7 @@
 <body>
     <div class="container">
         <div class="mode-banner">
-            🎯 最终版 - 智能处理 SSE/JSON 响应 | 内置 Cloudflare Workers 代理
+            🎯 最终版 - 智能处理 SSE/JSON 响应 | 内置你的 Cloudflare Workers API
         </div>
 
         <div class="config-panel">
@@ -421,12 +421,12 @@
                 authToken: document.getElementById('authToken').value,
                 sessionId: document.getElementById('sessionId').value
             };
-            localStorage.setItem('cozeAgentConfig', JSON.stringify(config));
+            localStorage.setItem('cozeAgentConfig_final', JSON.stringify(config));
             showNotification('配置已保存！');
         }
 
         function loadConfig() {
-            const savedConfig = localStorage.getItem('cozeAgentConfig');
+            const savedConfig = localStorage.getItem('cozeAgentConfig_final');
             if (savedConfig) {
                 try {
                     const config = JSON.parse(savedConfig);
